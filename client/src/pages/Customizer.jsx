@@ -17,6 +17,64 @@ import {
 
 const Customizer = () => {
   const stateRef = useSnapshot(state);
+  const [file, setFile] = useState("");
+  const [prompt, setprompt] = useState("");
+  const [generatingImg, setgeneratingImg] = useState(false);
+  const [activeEditorTab, setActiveEditorTab] = useState("");
+  const [activeFilterTab, setActiveFilterTab] = useState({
+    logoShirt: true,
+    stylishShirt: false
+  });
+
+  const generateTabContent = () => {
+    switch (activeEditorTab) {
+      case "colorpicker":
+        return <ColorPicker />;
+      case "filepicker":
+        return <FilePicker file={file} setFile={setFile} readFile={readFile} />;
+      case "aipicker":
+        return <AIPicker />;
+      default:
+        return null;
+    }
+  };
+
+  const handleDecals = (type, data) => {
+    const decalType = DecalTypes[type];
+    state[decalType.stateProperty] = data;
+
+    if (!activeFilterTab[decalType.FilterTab]) {
+      handleActiveFilterTab(decalType.FilterTab);
+    }
+  };
+
+  const handleActiveFilterTab = (filterTab) => {
+    switch (filterTab) {
+      case "logoShirt":
+        state.isLogoTexture = !activeFilterTab[filterTab];
+        break;
+      case "stylishShirt":
+        state.isFullTexture = !activeFilterTab[filterTab];
+        break;
+      default:
+        state.isFullTexture = false;
+        state.isLogoTexture = true;
+        break;
+    }
+    setActiveFilterTab((prevState) => {
+    return {
+      [filterTab]:!prevState[filterTab]
+    };
+  });
+  };
+
+  const readFile = (type) => {
+    reader(file).then((data) => {
+      handleDecals(type, data);
+      setActiveEditorTab("");
+    });
+  };
+
   return (
     <AnimatePresence>
       {!stateRef.intro && (
@@ -33,9 +91,12 @@ const Customizer = () => {
                     key={tab.name}
                     tab={tab}
                     active={stateRef.editorTab === tab.name}
-                    handleClick={() => stateRef.setEditorTab(tab.name)}
+                    handleClick={() => {
+                      setActiveEditorTab(tab.name);
+                    }}
                   />
                 ))}
+                {generateTabContent()}
               </div>
             </div>
           </motion.div>
@@ -55,13 +116,15 @@ const Customizer = () => {
             {...slideAnimation("up")}
           >
             {FilterTabs.map((tab) => (
+              <>
+              <p>{tab.name}</p>
               <Tab
                 key={tab.name}
                 tab={tab}
                 isFilterTab
-                isActiveTab=""
-                handleClick={() => {}}
-              />
+                isActiveTab={activeFilterTab[tab.name]}
+                handleClick={() => handleActiveFilterTab(tab.name)}
+              /></>
             ))}
           </motion.div>
         </>
