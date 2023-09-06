@@ -3,6 +3,8 @@ import React from "react";
 import CustomButton from "./CustomButton";
 
 const FilePicker = ({ file, setFile, readFile }) => {
+  //save the file in local state. readFile function then uses the file from local state
+  //to store the data to correct global state.
   return (
     <div className="filepicker-container">
       <div className="flex-1 flex flex-col">

@@ -7,6 +7,7 @@ import { download } from "../assets";
 import { downloadCanvasToImage, reader } from "../config/helpers";
 import { EditorTabs, FilterTabs, DecalTypes } from "../config/constants";
 import { fadeAnimation, slideAnimation } from "../config/motion";
+
 import {
   AIPicker,
   ColorPicker,
@@ -22,8 +23,8 @@ const Customizer = () => {
   const [generatingImg, setgeneratingImg] = useState(false);
   const [activeEditorTab, setActiveEditorTab] = useState("");
   const [activeFilterTab, setActiveFilterTab] = useState({
-    logoShirt: true,
-    stylishShirt: false
+    logoShirt: state.isLogoTexture,
+    stylishShirt: state.isFullTexture
   });
 
   const generateTabContent = () => {
@@ -33,17 +34,28 @@ const Customizer = () => {
       case "filepicker":
         return <FilePicker file={file} setFile={setFile} readFile={readFile} />;
       case "aipicker":
-        return <AIPicker prompt={prompt} setPrompt={setPrompt} generatingImg={generatingImg} handleSubmit={handleSubmit}/>;
+        return <AIPicker prompt={prompt} setPrompt={setprompt} generatingImg={generatingImg} handleSubmit={handleSubmit}/>;
       default:
         return null;
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (type) => {
     if(!prompt) return alert("Please enter a prompt");
 
     try {
-      //call backend to generate image
+      setgeneratingImg(true);
+      const response = await fetch("http://localhost:5000/api/v1/dalle",{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          prompt: prompt
+        })
+      });
+      const data = await response.json();
+      handleDecals(type, `data:image/png;base64,${data.photo}`)
     } catch (error) {
       console.log(error);
     } finally {
@@ -52,6 +64,7 @@ const Customizer = () => {
     }
   }
 
+  //save the image to state
   const handleDecals = (type, data) => {
     const decalType = DecalTypes[type];
     state[decalType.stateProperty] = data;
@@ -61,6 +74,7 @@ const Customizer = () => {
     }
   };
 
+  //toggle the active filter tab
   const handleActiveFilterTab = (filterTab) => {
     switch (filterTab) {
       case "logoShirt":
@@ -76,11 +90,13 @@ const Customizer = () => {
     }
     setActiveFilterTab((prevState) => {
     return {
+      ...prevState,
       [filterTab]:!prevState[filterTab]
     };
   });
   };
 
+  //read the image from local storage and save it to state
   const readFile = (type) => {
     reader(file).then((data) => {
       handleDecals(type, data);
@@ -88,10 +104,28 @@ const Customizer = () => {
     });
   };
 
+  //copyright: Chat GPT
+  //the image from the server is in base64 format so we need to decode it first then download it
+function downloadBase64Image(type) {
+  const decalType = DecalTypes[type];
+  const base64Img = state[decalType.stateProperty];
+  const base64DataWithoutPrefix = base64Img.replace(/^data:image\/\w+;base64,/, '');
+  const blob = new Blob([Uint8Array.from(atob(base64DataWithoutPrefix), c => c.charCodeAt(0))], { type: "image/jpeg" })
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Shirt-${type}`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+
+}
+
   return (
     <AnimatePresence>
+
       {!stateRef.intro && (
         <>
+        
           <motion.div
             key="custom"
             className="absolute top-0 left-0 z-10"
@@ -128,6 +162,12 @@ const Customizer = () => {
             className="filtertabs-container"
             {...slideAnimation("up")}
           >
+            {//do not show if the image is stock
+            state["logoDecal"] != "./threejs.png" && (
+              <CustomButton type="outline" title="download logo" customStyles="max-w-[12em]" onClick={() => downloadBase64Image("logo")}>
+                Download logo
+            </CustomButton>
+            )}
             {FilterTabs.map((tab) => (
               <>
               <Tab
@@ -136,8 +176,15 @@ const Customizer = () => {
                 isFilterTab
                 isActiveTab={activeFilterTab[tab.name]}
                 handleClick={() => handleActiveFilterTab(tab.name)}
-              /></>
+              />
+            </>
             ))}
+            
+            {state["fullDecal"] != "./threejs.png" && (
+              <CustomButton type="outline" title="download texture" customStyles="max-w-[12em]" handleClick={()=>downloadBase64Image("full")}>
+                Download texture
+            </CustomButton>
+            )}
           </motion.div>
         </>
       )}
