@@ -33,11 +33,24 @@ const Customizer = () => {
       case "filepicker":
         return <FilePicker file={file} setFile={setFile} readFile={readFile} />;
       case "aipicker":
-        return <AIPicker />;
+        return <AIPicker prompt={prompt} setPrompt={setPrompt} generatingImg={generatingImg} handleSubmit={handleSubmit}/>;
       default:
         return null;
     }
   };
+
+  const handleSubmit = async () => {
+    if(!prompt) return alert("Please enter a prompt");
+
+    try {
+      //call backend to generate image
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setgeneratingImg(false);
+      setActiveEditorTab("");
+    }
+  }
 
   const handleDecals = (type, data) => {
     const decalType = DecalTypes[type];
@@ -117,7 +130,6 @@ const Customizer = () => {
           >
             {FilterTabs.map((tab) => (
               <>
-              <p>{tab.name}</p>
               <Tab
                 key={tab.name}
                 tab={tab}
