@@ -7,6 +7,7 @@ import { download } from "../assets";
 import { downloadCanvasToImage, reader } from "../config/helpers";
 import { EditorTabs, FilterTabs, DecalTypes } from "../config/constants";
 import { fadeAnimation, slideAnimation } from "../config/motion";
+import selectedConfig from "../config/config";
 
 import {
   AIPicker,
@@ -17,6 +18,7 @@ import {
 } from "../components";
 
 const Customizer = () => {
+  
   const stateRef = useSnapshot(state);
   const [file, setFile] = useState("");
   const [prompt, setprompt] = useState("");
@@ -45,7 +47,7 @@ const Customizer = () => {
 
     try {
       setgeneratingImg(true);
-      const response = await fetch("http://localhost:5000/api/v1/dalle",{
+      const response = await fetch(selectedConfig,{
         method: "POST",
         headers: {
           "Content-Type": "application/json"
