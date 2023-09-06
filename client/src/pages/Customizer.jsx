@@ -166,7 +166,7 @@ function downloadBase64Image(type) {
           >
             {//do not show if the image is stock
             state["logoDecal"] != "./threejs.png" && (
-              <CustomButton type="outline" title="download logo" customStyles="max-w-[12em]" onClick={() => downloadBase64Image("logo")}>
+              <CustomButton type="outline" title="download logo" customStyles="max-w-[12em]" handleClick={() => downloadBase64Image("logo")}>
                 Download logo
             </CustomButton>
             )}
