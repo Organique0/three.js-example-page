@@ -5,6 +5,8 @@ Vite-React.js-Three.js
 
 Link: https://www.youtube.com/watch?v=ZqEa8fTxypQ
 
+server hosted on Render: https://three-js-example.onrender.com
+
 in .env create a VITE_NODE_ENV variable and set it to "production" to use the deployed server on Render. 
 If you are running server on localhost make sure that it is on port 8080 and then change the variable value to "development".
 Check config/config.js for more details.
